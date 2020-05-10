@@ -1,0 +1,91 @@
+emp_data <- read.csv('emp_data.csv')
+View(emp_data)
+summary(emp_data)
+library(lattice)
+any(is.na(emp_data$Salary_hike))
+any(is.na(emp_data$Churn_out_rate))
+dotplot(emp_data$Salary_hike,main='Dot Plot')
+dotplot(emp_data$Churn_out_rate,main='Dot Plot')
+boxplot(emp_data$Salary_hike,main='Box Plot')
+boxplot(emp_data$Churn_out_rate,main='Box Plot')
+hist(emp_data$Salary_hike)
+hist(emp_data$Churn_out_rate)
+qqnorm(emp_data$Salary_hike)
+qqline(emp_data$Churn_out_rate)
+hist(emp_data$Churn_out_rate, prob=TRUE)
+
+#ScatterPlot
+plot(emp_data$Salary_hike,emp_data$Churn_out_rate, col='dodgerblue')
+
+#Correlation
+cor(emp_data$Salary_hike,emp_data$Churn_out_rate)
+
+# There is negative correlation between the two.
+
+#Building model
+
+model_A <- lm(Churn_out_rate ~ Salary_hike, data = emp_data)
+summary(model_A)
+#Residual standard error: 4.469 on 8 degrees of freedom
+#Multiple R-squared:  0.8312,	Adjusted R-squared:  0.8101 
+#F-statistic:  39.4 on 1 and 8 DF,  p-value: 0.0002386
+confint(model_A,level = 0.95)
+predict_model_A <- predict(model_A, interval='predict')
+predict_model_A
+predict_model_A <- as.data.frame(predict_model_A)
+cor(predict_model_A$fit,emp_data$Churn_out_rate)
+
+#Transforming the variables to check if the predicted values are better
+
+#Square root
+model_sqrt <- lm(Churn_out_rate ~ sqrt(Salary_hike), data = emp_data)
+summary(model_sqrt)
+#Residual standard error: 4.351 on 8 degrees of freedom
+#Multiple R-squared:   0.84,	Adjusted R-squared:   0.82 
+#F-statistic: 42.01 on 1 and 8 DF,  p-value: 0.0001918
+confint(model_sqrt,level = 0.95)
+predict_model_sqrt <- predict(model_sqrt, interval='predict')
+predict_model_sqrt
+predict_model_sqrt <- as.data.frame(predict_model_sqrt)
+cor(predict_model_sqrt$fit,emp_data$Churn_out_rate)
+
+#Log
+model_log <- lm(Churn_out_rate ~ log(Salary_hike), data = emp_data)
+summary(model_log)
+#Residual standard error: 4.233 on 8 degrees of freedom
+#Multiple R-squared:  0.8486,	Adjusted R-squared:  0.8297 
+#F-statistic: 44.85 on 1 and 8 DF,  p-value: 0.0001532
+confint(model_log,level = 0.95)
+predict_model_log <- predict(model_log, interval='predict')
+predict_model_log
+predict_model_log <- as.data.frame(predict_model_log)
+cor(predict_model_log$fit,emp_data$Churn_out_rate)
+
+#Applying square root to the variable to be predicted
+model_sqrt_1 <- lm(sqrt(Churn_out_rate) ~ Salary_hike, data = emp_data)
+summary(model_sqrt_1)
+#Residual standard error: 0.2411 on 8 degrees of freedom
+#Multiple R-squared:  0.853,	Adjusted R-squared:  0.8346 
+#F-statistic: 46.42 on 1 and 8 DF,  p-value: 0.000136
+confint(model_sqrt_1,level = 0.95)
+predict_model_sqrt_1 <- predict(model_sqrt_1, interval='predict')
+predict_model_sqrt_1
+predict_model_sqrt_1 <- as.data.frame(predict_model_sqrt_1)
+cor(predict_model_sqrt_1$fit,emp_data$Churn_out_rate)
+
+
+#Applying log to the variable to be predicted
+model_log_1 <- lm(log(Churn_out_rate) ~ Salary_hike, data = emp_data)
+summary(model_log_1)
+#Residual standard error: 0.0519 on 8 degrees of freedom
+#Multiple R-squared:  0.8735,	Adjusted R-squared:  0.8577 
+#F-statistic: 55.26 on 1 and 8 DF,  p-value: 7.377e-05
+confint(model_log_1,level = 0.95)
+predict_model_log_1 <- predict(model_log_1, interval='predict')
+predict_model_log_1
+predict_model_log_1 <- as.data.frame(predict_model_log_1)
+cor(predict_model_log_1$fit,emp_data$Churn_out_rate)
+
+
+
+# We can clearly see that the best model to make prediction is model_log_1 with R squared value of  0.8735. 

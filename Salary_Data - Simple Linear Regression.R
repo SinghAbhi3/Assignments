@@ -1,0 +1,86 @@
+salary_data <- read.csv('Salary_Data.csv')
+head(salary_data)
+class(salary_data)
+summary(salary_data)
+library(lattice)
+any(is.na(salary_data$YearsExperience))
+dotplot(salary_data$YearsExperience,main='Dot Plot')
+dotplot(salary_data$Salary,main='Dot Plot')
+boxplot(salary_data$YearsExperience,main='Box Plot')
+boxplot(salary_data$Salary,main='Box Plot')
+hist(salary_data$YearsExperience)
+hist(salary_data$Salary)
+qqnorm(salary_data$YearsExperience)
+qqline(salary_data$YearsExperience)
+hist(salary_data$YearsExperience, prob=TRUE)
+#ScatterPlot
+plot(salary_data$Salary,salary_data$YearsExperience, col='dodgerblue')
+
+#Correlation
+cor(salary_data$YearsExperience,salary_data$Salary)
+
+#Building model
+
+model_A <- lm(Salary ~ YearsExperience, data=salary_data)
+summary(model_A)
+#Residual standard error: 5788 on 28 degrees of freedom
+#Multiple R-squared:  0.957,	Adjusted R-squared:  0.9554 
+#F-statistic: 622.5 on 1 and 28 DF,  p-value: < 2.2e-16
+
+confint(model_A,level = 0.95)
+predict_model_A <- predict(model_A, interval='predict')
+predict_model_A
+predict_model_A <- as.data.frame(predict_model_A)
+cor(predict_model_A$fit,salary_data$Salary)
+
+#Transforming the variables to check if the predicted values are better
+
+#Square root
+model_sqrt <- lm(Salary ~ sqrt(YearsExperience), data=salary_data)
+summary(model_sqrt)
+#Residual standard error: 7329 on 28 degrees of freedom
+#Multiple R-squared:  0.931,	Adjusted R-squared:  0.9285 
+#F-statistic: 377.8 on 1 and 28 DF,  p-value: < 2.2e-16
+confint(model_sqrt,level = 0.95)
+predict_model_sqrt <- predict(model_sqrt, interval='predict')
+predict_model_A
+predict_model_sqrt <- as.data.frame(predict_model_sqrt)
+cor(predict_model_sqrt$fit,salary_data$Salary)
+
+#Log
+model_log <- lm(Salary ~ log(YearsExperience), data=salary_data)
+summary(model_log)
+#Residual standard error: 10660 on 28 degrees of freedom
+#Multiple R-squared:  0.8539,	Adjusted R-squared:  0.8487 
+#F-statistic: 163.6 on 1 and 28 DF,  p-value: 3.25e-13
+confint(model_log,level = 0.95)
+predict_model_log <- predict(model_log, interval='predict')
+predict_model_log
+predict_model_log <- as.data.frame(predict_model_log)
+cor(predict_model_log$fit,salary_data$Salary)
+
+#Applying square root to the variable to be predicted
+model_sqrt_1 <- lm(sqrt(Salary) ~ YearsExperience, data=salary_data)
+summary(model_sqrt_1)
+#Residual standard error: 11.32 on 28 degrees of freedom
+#Multiple R-squared:  0.9498,	Adjusted R-squared:  0.948 
+#F-statistic: 530.2 on 1 and 28 DF,  p-value: < 2.2e-16
+confint(model_sqrt_1,level = 0.95)
+predict_model_sqrt_1 <- predict(model_sqrt_1, interval='predict')
+predict_model_sqrt_1
+predict_model_sqrt_1 <- as.data.frame(predict_model_sqrt_1)
+cor(predict_model_sqrt_1$fit,salary_data$Salary)
+
+#Applying log to the variable to be predicted
+model_log_1 <- lm(log(Salary) ~ YearsExperience, data=salary_data)
+summary(model_log_1)
+#Residual standard error: 0.09789 on 28 degrees of freedom
+#Multiple R-squared:  0.932,	Adjusted R-squared:  0.9295 
+#F-statistic: 383.6 on 1 and 28 DF,  p-value: < 2.2e-16
+confint(model_log_1,level = 0.95)
+predict_model_log_1 <- predict(model_log_1, interval='predict')
+predict_model_log_1
+predict_model_log_1 <- as.data.frame(predict_model_log_1)
+cor(predict_model_log_1$fit,salary_data$Salary)
+
+# We can clearly see that the best model to make prediction is model_A with R squared value of  0.957. 
