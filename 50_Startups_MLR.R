@@ -1,0 +1,106 @@
+StartUp_Data <- read.csv('50_Startups.csv')
+View(StartUp_Data)
+head(StartUp_Data)
+any(is.na(StartUp_Data))
+summary(StartUp_Data)
+str(StartUp_Data)
+
+#Scatterplot
+plot(StartUp_Data$Profit,StartUp_Data$Marketing.Spend)
+plot(StartUp_Data$Profit,StartUp_Data$R.D.Spend)
+
+#Correlation
+
+library(dplyr)
+startup_data_1 <- select(StartUp_Data,c(R.D.Spend,Administration,Marketing.Spend,Profit))
+head(startup_data_1)
+cor(startup_data_1)
+
+# The Linear Model of interest with all the columns
+
+model_A <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend + State , data = StartUp_Data )
+summary(model_A)
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)      5.013e+04  6.885e+03   7.281 4.44e-09 ***
+#  R.D.Spend        8.060e-01  4.641e-02  17.369  < 2e-16 ***
+#  Administration  -2.700e-02  5.223e-02  -0.517    0.608    
+#Marketing.Spend  2.698e-02  1.714e-02   1.574    0.123    
+#StateFlorida     1.988e+02  3.371e+03   0.059    0.953    
+#StateNew York   -4.189e+01  3.256e+03  -0.013    0.990 
+
+# Here we can see that R.D.Spend plays vital role in predicting the profit
+
+#Residual standard error: 9439 on 44 degrees of freedom
+#Multiple R-squared:  0.9508,	Adjusted R-squared:  0.9452 
+#F-statistic: 169.9 on 5 and 44 DF,  p-value: < 2.2e-16
+
+model_B <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend , data = StartUp_Data )
+summary(model_B)
+#Residual standard error: 9232 on 46 degrees of freedom
+#Multiple R-squared:  0.9507,	Adjusted R-squared:  0.9475 
+#F-statistic:   296 on 3 and 46 DF,  p-value: < 2.2e-16
+
+model_C <- lm(Profit ~ R.D.Spend, data = StartUp_Data )
+summary(model_C)
+#Residual standard error: 9416 on 48 degrees of freedom
+#Multiple R-squared:  0.9465,	Adjusted R-squared:  0.9454 
+#F-statistic: 849.8 on 1 and 48 DF,  p-value: < 2.2e-16
+
+
+# It is Better to delete influential observations rather than deleting entire column which is 
+# costliest process
+# Deletion Diagnostics for identifying influential observations
+
+library(car)
+influence.measures(model_B)
+## plotting Influential measures 
+windows()
+influenceIndexPlot(model_B,id.n=3) # index plots for infuence measures
+influencePlot(model_B,id.n=3) # A user friendly representation of the above
+
+# Regression after deleting the influential observation 50.
+
+model_B1 <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend , data = StartUp_Data[-50,] ) 
+summary(model_B1)
+#Residual standard error: 7754 on 45 degrees of freedom
+#Multiple R-squared:  0.9613,	Adjusted R-squared:  0.9587 
+#F-statistic: 372.8 on 3 and 45 DF,  p-value: < 2.2e-16
+
+# Regression after deleting the influential observation 49
+
+model_B2 <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend , data = StartUp_Data[-49,] ) 
+summary(model_B2)
+#Residual standard error: 9053 on 45 degrees of freedom
+#Multiple R-squared:  0.9499,	Adjusted R-squared:  0.9466 
+#F-statistic: 284.6 on 3 and 45 DF,  p-value: < 2.2e-16
+
+# Regression after deleting the influential observations, 49 & 50
+
+model_B3 <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend , data = StartUp_Data[c(-49,-50),] ) 
+summary(model_B3)
+#Residual standard error: 7349 on 44 degrees of freedom
+#Multiple R-squared:  0.9627,	Adjusted R-squared:  0.9601 
+#F-statistic: 378.3 on 3 and 44 DF,  p-value: < 2.2e-16
+
+# Regression after deleting the influential observations, 46,47,49 and 50
+model_B4 <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend , data = StartUp_Data[c(-46,-47,-49,-50),] ) 
+summary(model_B4)
+#Residual standard error: 7089 on 42 degrees of freedom
+#Multiple R-squared:  0.9626,	Adjusted R-squared:  0.9599 
+#F-statistic: 360.3 on 3 and 42 DF,  p-value: < 2.2e-16
+
+finalmodel <- model_B3
+summary(finalmodel)
+
+plot(finalmodel)
+
+hist(residuals(finalmodel)) # close to normal distribution
+
+Models <- c('model_A','model_B','model_C','model_B1','model_B2','model_B3','model_B4')
+R2_Values <- c(0.9452,0.9475,0.9454,0.9587,0.9466,0.9601,0.9599)
+
+final_table <- data.frame(Models,R2_Values)
+final_table
+
+# The best model to make prediction is model_B3

@@ -1,0 +1,90 @@
+comp_data <- read.csv('Computer_Data.csv')
+comp_data
+View(comp_data)
+any(is.na(comp_data))
+# The data has no missing values
+
+comp_data$screen <- factor(comp_data$screen)
+head(comp_data)
+summary(comp_data)
+
+# Scatter Plot
+
+plot(comp_data$price,comp_data$speed)
+plot(comp_data$price,comp_data$hd)
+plot(comp_data$price,comp_data$ram)
+plot(comp_data$price,comp_data$cd)
+
+library(lattice)
+qqnorm(comp_data$price)
+qqline(comp_data$price)
+
+# The Linear Model of interest with all the columns
+
+model_A <- lm(price ~ . , data = comp_data)
+summary(model_A)
+#Coefficients:
+ # Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)  307.98798   60.35341   5.103 3.44e-07 ***
+ # speed          9.32028    0.18506  50.364  < 2e-16 ***
+  #hd             0.78178    0.02761  28.311  < 2e-16 ***
+  #ram           48.25596    1.06608  45.265  < 2e-16 ***
+#  screen       123.08904    3.99950  30.776  < 2e-16 ***
+ # cdyes         60.91671    9.51559   6.402 1.65e-10 ***
+#  multiyes     104.32382   11.41268   9.141  < 2e-16 ***
+#  premiumyes  -509.22473   12.34225 -41.259  < 2e-16 ***
+ # ads            0.65729    0.05132  12.809  < 2e-16 ***
+#  trend        -51.84958    0.62871 -82.470  < 2e-16 ***
+
+# WE CAN SEE THAT ALL THE COEFFICIENTS ARE IMP IN PREDICING THE PRICE
+
+#Residual standard error: 275.3 on 6249 degrees of freedom
+#Multiple R-squared:  0.7756,	Adjusted R-squared:  0.7752 
+#F-statistic:  2399 on 9 and 6249 DF,  p-value: < 2.2e-16
+
+model_B <- lm(price ~ speed , data = comp_data)
+summary(model_B)
+#Residual standard error: 553.9 on 6257 degrees of freedom
+#Multiple R-squared:  0.09059,	Adjusted R-squared:  0.09044 
+#F-statistic: 623.3 on 1 and 6257 DF,  p-value: < 2.2e-16
+
+model_C <- lm(price ~ speed+hd+ram , data = comp_data)
+summary(model_C)
+#Residual standard error: 437.3 on 6255 degrees of freedom
+#Multiple R-squared:  0.4335,	Adjusted R-squared:  0.4332 
+#F-statistic:  1595 on 3 and 6255 DF,  p-value: < 2.2e-16
+
+# It is Better to delete influential observations rather than deleting entire column which is 
+# costliest process
+# Deletion Diagnostics for identifying influential observations
+
+library(car)
+influence.measures(model_A)
+## plotting Influential measures 
+windows()
+influenceIndexPlot(model_A,id.n=3) # index plots for infuence measures
+influencePlot(model_A,id.n=3) # A user friendly representation of the above
+
+# Regression after deleting the influential observation 
+model_A_1 <- lm(price ~ . , data = comp_data[-c(1441,1701,3784,4478),])
+summary(model_A_1)
+#Residual standard error: 273.1 on 6245 degrees of freedom
+#Multiple R-squared:  0.7774,	Adjusted R-squared:  0.777 
+#F-statistic:  2423 on 9 and 6245 DF,  p-value: < 2.2e-16
+
+model_A_2 <- lm(price ~ . , data = comp_data[-c(1441,1701),])
+summary(model_A_2)
+#Residual standard error: 273.1 on 6247 degrees of freedom
+#Multiple R-squared:  0.7777,	Adjusted R-squared:  0.7774 
+#F-statistic:  2428 on 9 and 6247 DF,  p-value: < 2.2e-16
+
+model_A_3 <- lm(price ~ . , data = comp_data[-c(1441,1701,4478),])
+summary(model_A_3)
+#Residual standard error: 273.1 on 6246 degrees of freedom
+#Multiple R-squared:  0.7776,	Adjusted R-squared:  0.7773 
+#F-statistic:  2426 on 9 and 6246 DF,  p-value: < 2.2e-16
+
+finalmodel <- model_A_2 
+hist(residuals(finalmodel)) # close to normal distribution
+
+# The best model to predict price is model_A_2
