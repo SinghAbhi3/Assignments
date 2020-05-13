@@ -1,0 +1,101 @@
+term_deposit <- read.csv('bank-full (1).csv',sep = ';')
+term_deposit
+head(term_deposit,20)
+tail(term_deposit,20)
+summary(term_deposit)
+str(term_deposit)
+table(term_deposit$job)
+
+# Putting Retired, Student and unemployed into one column 'Currently Not Employed' 
+
+group_emp <- function(job){
+  job <- as.character(job)
+  
+  if (job=='student' | job=='retired' | job=='unemployed'){
+    return('Currently Not Employed')
+    
+  }else{
+    return(job)
+  }
+}
+
+term_deposit$job <- sapply(term_deposit$job,group_emp)
+term_deposit$job <- sapply(term_deposit$job,factor)
+
+term_deposit$day <- sapply(term_deposit$day,factor)
+
+str(term_deposit)
+
+table(term_deposit$marital)
+levels(term_deposit$marital)
+
+#Checking for missing values
+library(Amelia)
+missmap(term_deposit,y.at=c(1),y.labels = c(''),col=c('yellow','black'))
+#There are no missing values
+
+#Visualization
+
+library(ggplot2)
+
+ggplot(term_deposit,aes(age,marital))+geom_boxplot()
+ggplot(term_deposit,aes(age))+geom_histogram(aes(fill=factor(marital)),color='black',binwidth=5)
+ggplot(term_deposit,aes(age))+geom_histogram(aes(fill=factor(default)),color='black',binwidth=5)
+ggplot(term_deposit,aes(age))+geom_histogram(aes(fill=factor(y)),color='black',binwidth=5)
+ggplot(term_deposit,aes(age))+geom_histogram(aes(fill=factor(month)),color='black',binwidth=5)
+
+# Buliding Model
+
+library(caTools)
+
+# Split up the sample, basically randomly assigns a booleans to a new column "sample"
+sample <- sample.split(term_deposit$y, SplitRatio = 0.70) # SplitRatio = percent of sample==TRUE                                                 
+
+
+# Training Data
+train = subset(term_deposit, sample == TRUE)
+
+
+# Testing Data
+test = subset(term_deposit, sample == FALSE)
+
+
+model = glm(y ~ ., family = binomial(logit), data = train)
+summary(model)
+
+
+new.step.model <- step(model)
+summary(new.step.model)
+
+
+test$predicted.y = predict(new.step.model, newdata=test, type="response")
+table(test$y, test$predicted.y > 0.5)
+
+
+#Confusion Matrix
+#    FALSE  TRUE
+#no  11687   290
+#yes  1023   564
+
+#Accuracy
+acc <- (11687+564)/(11687+564+290+1023)
+acc
+# 0.9031996
+
+# BASED ON THIS MODEL, WE CAN PREDICT Whether the client has subscribed a term deposit or not .
+
+#Precision
+
+pre <- 89/(89+6)
+pre
+
+#Recall
+rec <- 11687/(11687+290)
+rec
+#0.9757869
+
+#Precision
+
+pre <- 11687/(11687+1023)
+pre
+#0.9195122
