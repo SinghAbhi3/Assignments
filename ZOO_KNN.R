@@ -1,0 +1,81 @@
+#Setting Working Directory
+
+setwd('C:\\Users\\singh\\Documents\\KNN')
+
+#Reading file
+
+zoo_read <- read.csv('Zoo.csv')
+View(zoo_read)
+
+#Loading required pakages
+library(e1071)
+library(caTools)
+library(dplyr)
+library(ggplot2)
+library(lattice)
+library(caret)
+library(class)
+#install.packages('mlbench')
+library(mlbench)
+library(pROC)
+
+zoo_relevant <- zoo_read[,2:18]
+str(zoo_relevant)
+
+zoo_relevant$hair <- as.factor(zoo_relevant$hair)
+zoo_relevant$feathers <- as.factor(zoo_relevant$feathers)
+zoo_relevant$eggs <- as.factor(zoo_relevant$eggs)
+zoo_relevant$milk <- as.factor(zoo_relevant$milk)
+zoo_relevant$airborne <- as.factor(zoo_relevant$airborne)
+zoo_relevant$aquatic <- as.factor(zoo_relevant$aquatic)
+zoo_relevant$predator <- as.factor(zoo_relevant$predator)
+zoo_relevant$toothed <- as.factor(zoo_relevant$toothed)
+zoo_relevant$backbone <- as.factor(zoo_relevant$backbone)
+zoo_relevant$breathes <- as.factor(zoo_relevant$breathes)
+zoo_relevant$venomous <- as.factor(zoo_relevant$venomous)
+zoo_relevant$fins <- as.factor(zoo_relevant$fins)
+zoo_relevant$legs <- as.factor(zoo_relevant$legs)
+zoo_relevant$tail <- as.factor(zoo_relevant$tail)
+zoo_relevant$domestic <- as.factor(zoo_relevant$domestic)
+zoo_relevant$catsize <- as.factor(zoo_relevant$catsize)
+zoo_relevant$type <- as.factor(zoo_relevant$type)
+str(zoo_relevant)
+
+set.seed(123)
+
+#Splitting the data
+split_zoo <- sample.split(zoo_relevant$type, SplitRatio = 0.80)
+zoo_train_data <- subset(zoo_relevant, split_zoo == TRUE)
+zoo_test_data <- subset(zoo_relevant, split_zoo == FALSE)
+
+#KNN Model
+
+trcontrol <- trainControl(method = "repeatedcv", number = 10,repeats = 3)
+
+set.seed(222)
+
+zoo <- train(type ~., data = zoo_train_data, method = 'knn', tuneLength = 20,
+             trControl = trcontrol, preProc = c("center","scale"))
+zoo
+
+zoo_1 <- train(type ~., data = zoo_train_data, method = 'knn', tuneLength = 18,
+             trControl = trcontrol, preProc = c("center","scale"))
+zoo_1
+
+zoo_2 <- train(type ~., data = zoo_train_data, method = 'knn', tuneLength = 16,
+             trControl = trcontrol, preProc = c("center","scale"))
+zoo_2
+
+predicted_zoo <- predict(zoo,newdata = zoo_test_data )
+confusionMatrix(predicted_zoo, zoo_test_data$type)
+#Accuracy:85.71% or 0.8571
+
+predicted_zoo_1 <- predict(zoo_2,newdata = zoo_test_data )
+confusionMatrix(predicted_zoo_1, zoo_test_data$type)
+#Accuracy : 0.9048 or 90.48%
+
+FINAL_ZOO_KNN <- predicted_zoo_1
+FINAL_ZOO_KNN
+#WITH THIS MODEL WE'RE GETTING ACCURACY OF 90.48% 
+#Accuracy was used to select the optimal model using the largest value.
+#The final value used for the model was k = 5.
