@@ -1,0 +1,158 @@
+#Setting working directory
+setwd('C:\\Users\\singh\\Documents\\Random Forest')
+
+#reading file
+
+companyData <- read.csv('Company_Data.csv')
+head(companyData)
+str(companyData)
+summary(companyData)
+hist(companyData$Sales, main = "Sales",xlim = c(0,20),
+     breaks=c(seq(10,20,30)), col = c("blue","red", "green","violet"))
+Sales_high = ifelse(companyData$Sales<9, "No", "Yes") 
+companyData_df <- data.frame(companyData[2:11], Sales_high)
+str(companyData_df)
+companyData_df$ShelveLoc <- as.factor(companyData_df$ShelveLoc)
+companyData_df$Urban <- as.factor(companyData_df$Urban)
+companyData_df$US <- as.factor(companyData_df$US)
+companyData_df$Sales_high <- as.factor(companyData_df$Sales_high)
+str(companyData_df)
+table(companyData_df$Sales_high)
+
+#install.packages("MASS")
+library(MASS)
+#install.packages("caret")
+library(caret)
+install.packages("e1071")
+library(e1071)
+#Splitting the data
+
+set.seed(123)
+ind <- sample(2, nrow(companyData_df), replace = TRUE, prob = c(0.7,0.3))
+train <- companyData_df[ind==1,]
+test  <- companyData_df[ind==2,]
+set.seed(213)
+library(randomForest)
+rf <- randomForest(Sales_high~., data=train)
+rf  
+#Call:
+ # randomForest(formula = Sales_high ~ ., data = train) 
+#Type of random forest: classification
+#Number of trees: 500
+#No. of variables tried at each split: 3
+
+#OOB estimate of  error rate: 18.25%
+#Confusion matrix:
+ # No Yes class.error
+#No  198  12  0.05714286
+#Yes  40  35  0.53333333
+
+attributes(rf)
+#$names
+#[1] "call"            "type"            "predicted"       "err.rate"       
+#[5] "confusion"       "votes"           "oob.times"       "classes"        
+#[9] "importance"      "importanceSD"    "localImportance" "proximity"      
+#[13] "ntree"           "mtry"            "forest"          "y"              
+#[17] "test"            "inbag"           "terms"          
+
+#$class
+#[1] "randomForest.formula" "randomForest"  
+
+predict1 <- predict(rf, train)
+head(predict1)
+#> head(predict1)
+#1   3   6   7   9  10 
+#Yes Yes Yes  No  No  No 
+#Levels: No Yes
+
+head(train$Sales_high)
+confusionMatrix(predict1, train$Sales_high) 
+#confusion Matrix and Statistics
+
+#Reference
+#Prediction  No Yes
+#No  210   0
+#Yes   0  75
+
+#Accuracy : 1          
+#95% CI : (0.9871, 1)
+#No Information Rate : 0.7368     
+#P-Value [Acc > NIR] : < 2.2e-16  
+
+#Kappa : 1          
+
+#Mcnemar's Test P-Value : NA         
+                                     
+ #           Sensitivity : 1.0000     
+            #Specificity : 1.0000     
+        # Pos Pred Value : 1.0000     
+         #Neg Pred Value : 1.0000     
+#             Prevalence : 0.7368     
+ #        Detection Rate : 0.7368     
+  # Detection Prevalence : 0.7368     
+   #   Balanced Accuracy : 1.0000     
+                                     
+    #   'Positive' Class : No    
+
+
+
+
+#Prediction with test data
+
+predict2 <- predict(rf, test)
+confusionMatrix(predict2, test$Sales_high)
+
+
+plot(rf)
+
+# Tune Random Forest Model 
+tune_RandomF <- tuneRF(train[,-11], train[,11], stepFactor = 0.5, plot = TRUE, ntreeTry = 300,
+               trace = TRUE, improve = 0.05)
+
+rf1 <- randomForest(Sales_high~., data=train, ntree = 300, mtry = 3, importance = TRUE,
+                    proximity = TRUE)
+rf1
+
+predict1 <- predict(rf1, train)
+confusionMatrix(predict1, train$Sales_high)  
+head(predict1)
+#1   3   6   7   9  10 
+#Yes Yes Yes  No  No  No 
+#Levels: No Yes
+
+# test data prediction using  Tuned RF1 model
+predict2 <- predict(rf1, test)
+confusionMatrix(predict2, test$Sales_high)
+#Accuracy : 0.8348 
+
+
+#Number of nodes
+
+hist(treesize(rf1), main = "No of Nodes for the trees", col = "yellow")
+
+
+#Variable importance
+
+varImpPlot(rf1)
+#Important points to note
+# Mean Decrease Accuracy graph shows that how worst the model performs without each variable.
+# say ShelveLoc is the most important variable for prediction.on looking at population,it has no value.
+
+# MeanDecrease gini graph shows how much by average the gini decreases if one of those nodes were 
+# removed. Price is very important and Urban is not that important.
+
+importance(rf1)
+#No        Yes MeanDecreaseAccuracy MeanDecreaseGini
+#CompPrice    3.38574659 -0.1155233            3.0001104        11.553706
+#Income       2.29636970  1.3605459            2.5139167        10.329353
+#Advertising  4.20338514 13.6986296           11.8658287        15.298464
+#Population  -0.78692660 -2.7729681           -2.2985757        11.277250
+#Price       16.92436779 13.2679497           20.7258540        22.290794
+#ShelveLoc   17.14250593 20.3844036           22.6144301        17.436698
+#Age          2.90455533  0.1397363            2.2852045        10.772620
+#Education   -0.26102471  2.3290938            1.3369748         6.865897
+#Urban       -0.93546647 -0.3064684           -0.9109341         1.253121
+#US          -0.08215293  5.3279315            3.1953399         2.564866
+
+varUsed(rf)
+#2670 2482 2131 2639 3211 1386 2520 1875  399  376
