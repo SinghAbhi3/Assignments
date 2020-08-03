@@ -1,0 +1,67 @@
+#Setting working directory
+setwd('C:\\Users\\singh\\Documents\\Naive Bayes')
+
+library(ggplot2)
+#install.packages('naivebayes')
+library(naivebayes)
+library(caret)
+install.packages('psych')
+library(psych)
+library(e1071)
+#Reading file
+salary_train <- read.csv('SalaryData_Train.csv')
+str(salary_train)
+salary_train$workclass <- as.factor(salary_train$workclass)
+salary_train$education <- as.factor(salary_train$education)
+salary_train$maritalstatus <- as.factor(salary_train$maritalstatus)
+salary_train$occupation <- as.factor(salary_train$occupation)
+salary_train$relationship <- as.factor(salary_train$relationship)
+salary_train$race <- as.factor(salary_train$race)
+salary_train$sex <- as.factor(salary_train$sex)
+salary_train$native <- as.factor(salary_train$native)
+salary_train$Salary <- as.factor(salary_train$Salary)
+salary_train$educationno <- as.factor(salary_train$educationno)
+summary(salary_train)
+
+
+salary_test <- read.csv('SalaryData_Test.csv')
+str(salary_test)
+salary_test$workclass <- as.factor(salary_test$workclass)
+salary_test$education <- as.factor(salary_test$education)
+salary_test$maritalstatus <- as.factor(salary_test$maritalstatus)
+salary_test$occupation <- as.factor(salary_test$occupation)
+salary_test$relationship <- as.factor(salary_test$relationship)
+salary_test$race <- as.factor(salary_test$race)
+salary_test$sex <- as.factor(salary_test$sex)
+salary_test$native <- as.factor(salary_test$native)
+salary_test$Salary <- as.factor(salary_test$Salary)
+salary_test$educationno <- as.factor(salary_test$educationno)
+
+#DATAVISUALIZATION
+
+ggplot(data=salary_train,aes(x=salary_train$Salary, y = salary_train$age, fill = salary_train$Salary)) +
+  geom_boxplot() +
+  ggtitle("Box Plot")
+
+ggplot(data=salary_train,aes(x=salary_train$Salary, y = salary_train$capitalloss, fill = salary_train$Salary)) +
+  geom_boxplot() +
+  ggtitle("Box Plot")
+
+ggplot(data=salary_train,aes(x=salary_train$Salary, y = salary_train$hoursperweek, fill = salary_train$Salary)) +
+  geom_boxplot() +
+  ggtitle("Box Plot")
+
+ggplot(data=salary_train,aes(x = salary_train$native, fill = salary_train$Salary)) +
+  geom_density(alpha = 0.8, color = 'green')
+
+
+# Naive Bayes Model 
+salary_model <- naiveBayes(salary_train$Salary ~ ., data = salary_train)
+salary_model
+
+Model_pred <- predict(salary_model,salary_test)
+mean(Model_pred==salary_test$Salary)
+#0.8187251
+
+confusionMatrix(Model_pred,salary_test$Salary)
+#  Accuracy : 0.8187  
